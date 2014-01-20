@@ -1,0 +1,11 @@
+#container {
+    text-align:center;
+}
+#board {
+    display: inline;
+	background: black;
+}
+.debugging-overlay{
+	opacity: .7;
+	width: 800;
+}
