@@ -2,7 +2,10 @@
 var ctx,
     canvas,
     current = [],
-    next = [];
+    next = [],
+
+    max_x,
+    max_y;
 
 var Config = {
     WIDTH: 800,
@@ -31,23 +34,22 @@ function init(){
     canvas.width = Config.WIDTH;
     canvas.height = Config.HEIGHT;
 
+    max_x = Config.WIDTH/Config.GRIDSIZE;
+    max_y = Config.HEIGHT/Config.GRIDSIZE;
+
     // focus
     canvas.setAttribute('tabindex','0');
     canvas.focus();
 
-    drawgrid();
-    generateboard();
+    drawGrid();
+    generateBoard();
 
     // initial seed for testing
     //
     current[10][12] = 1;
-    current[50][70] = 1;
-    current[50][71] = 1;
-    current[95][140] = 1;
-    current[410][120] = 1;
-    current[450][300] = 1;
-    current[500][250] = 1;
-    
+    current[50][30] = 1;
+    current[50][31] = 1;
+    current[51][31] = 1;
 
     console.log('game loaded');
 
@@ -55,7 +57,7 @@ function init(){
 }
 
 
-function drawgrid(){
+function drawGrid(){
     // horizontal
     for (var y = 0.5, i = Config.HEIGHT; y<=i; y += Config.GRIDSIZE){
         ctx.moveTo(0, y);
@@ -72,82 +74,19 @@ function drawgrid(){
     ctx.strokeStyle = 'white';
     ctx.stroke();
 
-    console.log('grid drawn');
+    //console.log('grid drawn');
 }
 
-function applytonext(current, next, action){
-    for(var i = 0;i < Config.WIDTH;i++){
-        for( var j = 0;j < Config.HEIGHT;j++){
-		action(next, i, j);
-	}
-    }
-}
+function drawBoard(){
+// clean up screen before each frame is drawn
+ ctx.clearRect(0,0, canvas.width, canvas.height);
 
-function generateboard(){
-    for(var i = 0;i < Config.WIDTH;i++){
-    current[i] = [];
-    next[i] = [];
-        for(var j = 0;j < Config.HEIGHT;j++){
-		current[i][j] = 0;
-		next[i][j] = 0;
-	}
-    }
-}
-
-function isalive(board, x, y){
-	var sum = 0;
-
-	if(x>0 && y>0){
-		board[x-1][y-1] == 1 ? sum += 1 : sum +=0;
-	}
-	if(y>0){
-		board[x][y-1] == 1 ? sum += 1 :sum +=0;
-	}
-	if(x<Config.WIDTH && y>0){
-		board[x+1][y-1] == 1 ? sum += 1:sum +=0;
-	}
-	if(x>0){
-		board[x-1][y] == 1 ? sum += 1 :sum +=0 ;
-	}
-	if(x<Config.HEIGHT){
-		board[x+1][y] == 1 ? sum += 1:sum +=0;
-	}
-	if(x>0 && y<Config.HEIGHT){
-		board[x-1][y+1] == 1 ? sum += 1 : sum +=0;
-	}
-	if(y<Config.HEIGHT){
-		board[x][y+1] == 1 ? sum += 1:sum +=0;
-	}
-	if(x<Config.WIDTH && y<Config.HEIGHT){
-		board[x+1][y+1] == 1 ? sum += 1:sum +=0;
-	}
-
-
-	// check neighbors
-	//
-	if(sum == 2 || sum == 3){
-		console.log('alive!');
-		return true;
-	}else{
-		console.log('dead!');
-		return false;
-	}
-}
-
-function nextgen(){
-    applytonext(current, next, function(cell, x, y){
-	    if(isalive(current, x, y)){
-    		cell = 1;
-	    }
-    	});
-}
-
-function drawboard(){
-    for(var i=0;i<Config.WIDTH;i++){
-	    for(var j=0;j<Config.HEIGHT;j++){
+ drawGrid();
+    for(var i=0;i<max_x;i++){
+	    for(var j=0;j<max_y;j++){
 		if(current[i][j] == 1){
 			ctx.beginPath();
-			ctx.rect(i, j, Config.GRIDSIZE, Config.GRIDSIZE);
+			ctx.rect(i*Config.GRIDSIZE, j*Config.GRIDSIZE, Config.GRIDSIZE, Config.GRIDSIZE);
 			ctx.fillStyle = 'white';
 			ctx.fill();
 		}
@@ -155,13 +94,107 @@ function drawboard(){
 	}
 }
 
+function generateBoard(){
+    for(var i = 0;i < max_x;i++){
+    current[i] = [];
+    next[i] = [];
+        for(var j = 0;j < max_y;j++){
+		current[i][j] = 0;
+		next[i][j] = 0;
+	}
+    }
+}
+
+function checkNeighbors(board, x, y){
+	var sum = 0;
+
+	if(x>0 && y>0){
+		board[x-1][y-1] == 1 ? sum += 1 : sum +=0;
+	}
+	if(x<(max_x) && y>0){
+		board[x][y-1] == 1 ? sum += 1 :sum +=0;
+	}
+	if(x<(max_x-1) && y>0){
+		board[x+1][y-1] == 1 ? sum += 1:sum +=0;
+	}
+	if(x>0){
+		board[x-1][y] == 1 ? sum += 1 :sum +=0 ;
+	}
+	if(x<(max_x-1)){
+		board[x+1][y] == 1 ? sum += 1:sum +=0;
+	}
+	if(x>0 && y<(max_y-1)){
+		board[x-1][y+1] == 1 ? sum += 1 : sum +=0;
+	}
+	if(x<(max_x) && y<(max_y-1)){
+		board[x][y+1] == 1 ? sum += 1:sum +=0;
+	}
+	if(x<(max_x-1) && y<(max_y-1)){
+		board[x+1][y+1] == 1 ? sum += 1:sum +=0;
+	}
+
+	return sum;
+}
+
+function isAlive(board, x, y){
+
+	// fix coordinates to array
+
+	var neighbors = checkNeighbors(board,x,y);
+	var current = board[x][y];
+
+	// check neighbors
+	//
+	if(neighbors == 3){
+		return true;
+	}
+	else if (current == 1 && (neighbors == 2 || neighbors == 3)){
+		return true;
+	}
+	else{
+		return false;
+	}
+}
+
+function applyToNext(current, next, action){
+    for(var i = 0;i < max_x;i++){
+        for( var j = 0;j < max_y;j++){
+		action(i, j);
+	}
+    }
+}
+
+function nextGen(){
+    applyToNext(current, next, function(x, y){
+	    if(isAlive(current, x, y)){
+		next[x][y] = 1;
+	    }
+    	});
+}
+
 function runLoop(){
-    // calculate next generation
-    nextgen();
     // draw	
-    drawboard();
+    drawBoard();
+
+    // calculate next generation
+    nextGen();
+
+    // DEBUG draw next gen
+    for(var i=0;i<max_x;i++){
+            for(var j=0;j<max_y;j++){
+        	if(next[i][j] == 1){
+        		ctx.beginPath();
+        		ctx.rect(i*Config.GRIDSIZE, j*Config.GRIDSIZE, Config.GRIDSIZE, Config.GRIDSIZE);
+        		ctx.fillStyle = 'red';
+        		ctx.fill();
+        	}
+            }
+        } 
+    
+    current = next; 
 
     //window.requestAnimFrame(runLoop(), ctx.canvas);
+    //setTimeout(runLoop(),100);
 }
 
 })();
