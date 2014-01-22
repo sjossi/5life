@@ -15,6 +15,8 @@ var Config = {
     
 window.addEventListener('load', init, false);
 
+window.addEventListener('mousedown', runLoop, false);
+
 window.requestAnimFrame = (function(){
       return  window.requestAnimationFrame       ||
               window.webkitRequestAnimationFrame ||
@@ -48,8 +50,11 @@ function init(){
     //
     current[10][12] = 1;
     current[50][30] = 1;
-    current[50][31] = 1;
     current[51][31] = 1;
+    current[51][32] = 1;
+    current[50][32] = 1;
+    current[49][32] = 1;
+
 
     console.log('game loaded');
 
@@ -83,14 +88,14 @@ function drawBoard(){
 
  drawGrid();
     for(var i=0;i<max_x;i++){
-	    for(var j=0;j<max_y;j++){
-		if(current[i][j] == 1){
-			ctx.beginPath();
-			ctx.rect(i*Config.GRIDSIZE, j*Config.GRIDSIZE, Config.GRIDSIZE, Config.GRIDSIZE);
-			ctx.fillStyle = 'white';
-			ctx.fill();
-		}
-	    }
+        for(var j=0;j<max_y;j++){
+            if(current[i][j] == 1){
+                ctx.beginPath();
+                ctx.rect(i*Config.GRIDSIZE, j*Config.GRIDSIZE, Config.GRIDSIZE, Config.GRIDSIZE);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+            }
+        }
 	}
 }
 
@@ -148,7 +153,7 @@ function isAlive(board, x, y){
 	if(neighbors == 3){
 		return true;
 	}
-	else if (current == 1 && (neighbors == 2 || neighbors == 3)){
+	else if (current == 1 && neighbors == 2){
 		return true;
 	}
 	else{
@@ -158,18 +163,20 @@ function isAlive(board, x, y){
 
 function applyToNext(current, next, action){
     for(var i = 0;i < max_x;i++){
-        for( var j = 0;j < max_y;j++){
-		action(i, j);
-	}
+        for(var j = 0;j < max_y;j++){
+            action(i, j);
+        }
     }
 }
 
 function nextGen(){
     applyToNext(current, next, function(x, y){
 	    if(isAlive(current, x, y)){
-		next[x][y] = 1;
-	    }
-    	});
+            next[x][y] = 1;
+        }else{
+            next[x][y] = 0;
+        }
+    });
 }
 
 function runLoop(){
@@ -185,16 +192,18 @@ function runLoop(){
         	if(next[i][j] == 1){
         		ctx.beginPath();
         		ctx.rect(i*Config.GRIDSIZE, j*Config.GRIDSIZE, Config.GRIDSIZE, Config.GRIDSIZE);
-        		ctx.fillStyle = 'red';
+        		ctx.fillStyle = 'rgba(255,0,0,0.5)';
         		ctx.fill();
         	}
             }
         } 
     
-    current = next; 
+    current = next.slice();
 
     //window.requestAnimFrame(runLoop(), ctx.canvas);
-    //setTimeout(runLoop(),100);
+    //setTimeout(runLoop(),1000);
+    //
+    console.log('ran loop');
 }
 
 })();
