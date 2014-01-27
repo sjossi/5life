@@ -8,8 +8,8 @@ var ctx,
     max_y;
 
 var Config = {
-    WIDTH: 800,
-    HEIGHT: 400,
+    WIDTH: 70,
+    HEIGHT: 70,
     GRIDSIZE:  10
 };
     
@@ -48,13 +48,12 @@ function init(){
 
     // initial seed for testing
     //
-    current[10][12] = 1;
-    current[50][30] = 1;
-    current[51][31] = 1;
-    current[51][32] = 1;
-    current[50][32] = 1;
-    current[49][32] = 1;
 
+    current[1][1] = 1;
+    current[2][2] = 1;
+    current[2][3] = 1;
+    current[1][3] = 1;
+    current[0][3] = 1;
 
     console.log('game loaded');
 
@@ -138,6 +137,10 @@ function checkNeighbors(board, x, y){
 		board[x+1][y+1] == 1 ? sum += 1:sum +=0;
 	}
 
+    if(sum>1){
+       // debugger;
+    }
+
 	return sum;
 }
 
@@ -146,14 +149,14 @@ function isAlive(board, x, y){
 	// fix coordinates to array
 
 	var neighbors = checkNeighbors(board,x,y);
-	var current = board[x][y];
+	var current_value = board[x][y];
 
 	// check neighbors
 	//
 	if(neighbors == 3){
 		return true;
 	}
-	else if (current == 1 && neighbors == 2){
+	else if (current_value == 1 && neighbors == 2){
 		return true;
 	}
 	else{
